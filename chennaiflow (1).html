@@ -1,0 +1,1056 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ChennaiFlow — AI That Moves at Your Speed</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+  <script>
+    const _warn = console.warn.bind(console);
+    console.warn = (...args) => {
+      if (typeof args[0] === 'string' && args[0].includes('cdn.tailwindcss.com')) return;
+      _warn(...args);
+    };
+  </script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap" rel="stylesheet" />
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            display: ['Syne', 'sans-serif'],
+            body:    ['DM Sans', 'sans-serif'],
+          },
+          colors: {
+            night:         '#080A0F',
+            void:          '#0C0E14',
+            surface:       '#111318',
+            border:        '#1E2128',
+            ember:         '#FF4D1C',
+            'ember-light': '#FF6B3D',
+            gold:          '#F5C842',
+            mist:          '#8B92A5',
+            snow:          '#E8EAF0',
+            wa:            '#25D366',
+          },
+        }
+      }
+    }
+  </script>
+
+  <style>
+    *, *::before, *::after { box-sizing: border-box; }
+    html { background: #080A0F; scroll-behavior: smooth; }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: #080A0F;
+      color: #E8EAF0;
+      overflow-x: hidden;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ── Grain overlay ── */
+    body::before {
+      content: '';
+      position: fixed; inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+      pointer-events: none; z-index: 9999; opacity: 0.35;
+    }
+
+    /* ── Mesh hero bg ── */
+    .hero-bg {
+      background:
+        radial-gradient(ellipse 80% 60% at 10% 20%, rgba(255,77,28,.09) 0%, transparent 60%),
+        radial-gradient(ellipse 60% 80% at 90% 80%, rgba(245,200,66,.05) 0%, transparent 55%),
+        radial-gradient(ellipse 100% 100% at 50% 50%, rgba(17,19,24,1) 40%, #080A0F 100%);
+    }
+
+    /* ── Navbar glass ── */
+    .nav-glass {
+      background: rgba(8,10,15,.82);
+      backdrop-filter: blur(22px);
+      -webkit-backdrop-filter: blur(22px);
+      border-bottom: 1px solid rgba(255,255,255,.05);
+    }
+
+    /* ── Grid lines ── */
+    .grid-bg {
+      background-image:
+        linear-gradient(rgba(255,255,255,.025) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,.025) 1px, transparent 1px);
+      background-size: 60px 60px;
+    }
+
+    /* ── Nav underline ── */
+    .nav-link { position: relative; color: #8B92A5; transition: color .2s; }
+    .nav-link::after {
+      content: '';
+      position: absolute; bottom: -3px; left: 0;
+      width: 0; height: 1px; background: #FF4D1C;
+      transition: width .3s ease;
+    }
+    .nav-link:hover { color: #E8EAF0; }
+    .nav-link:hover::after { width: 100%; }
+
+    /* ── Buttons ── */
+    .btn-ember {
+      background: linear-gradient(135deg, #FF4D1C 0%, #FF6B3D 100%);
+      transition: transform .2s, box-shadow .2s, filter .2s;
+      position: relative; overflow: hidden;
+    }
+    .btn-ember::after {
+      content: ''; position: absolute; inset: 0;
+      background: linear-gradient(135deg, rgba(255,255,255,.13) 0%, transparent 60%);
+      pointer-events: none;
+    }
+    .btn-ember:hover { transform: translateY(-2px); box-shadow: 0 12px 40px rgba(255,77,28,.45); filter: brightness(1.08); }
+    .btn-ember:active { transform: translateY(0); }
+
+    .btn-outline {
+      border: 1px solid rgba(255,255,255,.15);
+      transition: background .2s, border-color .2s, transform .2s;
+    }
+    .btn-outline:hover { background: rgba(255,255,255,.06); border-color: rgba(255,255,255,.28); transform: translateY(-2px); }
+
+    /* ── Feature cards ── */
+    .card-hover {
+      transition: transform .35s cubic-bezier(.23,1,.32,1), border-color .35s, box-shadow .35s;
+    }
+    .card-hover:hover {
+      transform: translateY(-6px);
+      border-color: rgba(255,77,28,.3);
+      box-shadow: 0 24px 60px rgba(0,0,0,.4), 0 0 30px rgba(255,77,28,.08);
+    }
+    .icon-wrap {
+      background: rgba(255,77,28,.08);
+      border: 1px solid rgba(255,77,28,.18);
+      transition: background .3s, border-color .3s, box-shadow .3s;
+    }
+    .card-hover:hover .icon-wrap {
+      background: rgba(255,77,28,.15);
+      border-color: rgba(255,77,28,.4);
+      box-shadow: 0 0 20px rgba(255,77,28,.2);
+    }
+
+    /* ── Testimonial cards ── */
+    .testimonial-card {
+      background: linear-gradient(135deg, rgba(30,33,40,.8) 0%, rgba(17,19,24,.9) 100%);
+      border: 1px solid rgba(255,255,255,.07);
+      backdrop-filter: blur(10px);
+      transition: border-color .3s, transform .3s;
+    }
+    .testimonial-card:hover { border-color: rgba(255,77,28,.22); transform: translateY(-4px); }
+
+    /* ── Orbs ── */
+    @keyframes orb-pulse {
+      0%,100% { opacity:.6; }
+      50%      { opacity:.9; }
+    }
+    .orb   { animation: orb-pulse 6s ease-in-out infinite; }
+    .orb-2 { animation: orb-pulse 8s ease-in-out infinite reverse; }
+
+    /* ── Marquee ── */
+    .marquee-track {
+      display: flex; gap: 2rem;
+      animation: marquee 28s linear infinite;
+      width: max-content;
+    }
+    @keyframes marquee {
+      from { transform: translateX(0); }
+      to   { transform: translateX(-50%); }
+    }
+
+    /* ── Mobile menu ── */
+    #mobile-menu { transition: max-height .4s cubic-bezier(.23,1,.32,1), opacity .3s; }
+    #mobile-menu.closed { max-height: 0; opacity: 0; overflow: hidden; }
+    #mobile-menu.open   { max-height: 480px; opacity: 1; }
+
+    /* ── Scroll reveal ── */
+    .reveal { opacity: 0; transform: translateY(32px); }
+
+    /* ── Glow ── */
+    .glow-ember { box-shadow: 0 0 40px rgba(255,77,28,.25), 0 0 14px rgba(255,77,28,.1); }
+
+    /* ── WhatsApp FAB ── */
+    .wa-fab {
+      position: fixed; bottom: 1.5rem; right: 1.5rem; z-index: 9998;
+      width: 56px; height: 56px; border-radius: 50%;
+      background: #25D366;
+      display: flex; align-items: center; justify-content: center;
+      box-shadow: 0 8px 28px rgba(37,211,102,.45);
+      transition: transform .25s, box-shadow .25s;
+      text-decoration: none;
+    }
+    .wa-fab:hover { transform: scale(1.1) translateY(-3px); box-shadow: 0 14px 40px rgba(37,211,102,.55); }
+    .wa-fab:active { transform: scale(.97); }
+    /* Tooltip */
+    .wa-fab::before {
+      content: 'Chat with us';
+      position: absolute; right: calc(100% + 10px);
+      background: rgba(17,19,24,.95);
+      border: 1px solid rgba(255,255,255,.08);
+      color: #E8EAF0; font-family: 'DM Sans', sans-serif; font-size: 12px;
+      white-space: nowrap; padding: 6px 10px; border-radius: 8px;
+      opacity: 0; pointer-events: none;
+      transform: translateX(6px); transition: opacity .2s, transform .2s;
+    }
+    .wa-fab:hover::before { opacity: 1; transform: translateX(0); }
+    /* Hide tooltip on very small screens */
+    @media (max-width: 360px) { .wa-fab::before { display: none; } }
+
+    /* ── Contact form inputs ── */
+    .form-input {
+      width: 100%;
+      background: rgba(17,19,24,.8);
+      border: 1px solid #1E2128;
+      color: #E8EAF0;
+      border-radius: 12px;
+      padding: 12px 16px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 14px;
+      outline: none;
+      transition: border-color .2s, box-shadow .2s;
+    }
+    .form-input::placeholder { color: rgba(139,146,165,.5); }
+    .form-input:focus {
+      border-color: rgba(255,77,28,.5);
+      box-shadow: 0 0 0 3px rgba(255,77,28,.1);
+    }
+    .form-textarea { resize: vertical; min-height: 110px; }
+
+    /* ── Success box ── */
+    #form-success { display: none; }
+    #form-success.show {
+      display: block;
+      animation: fadeInUp .45s ease forwards;
+    }
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(16px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ── Scrollbar ── */
+    ::-webkit-scrollbar { width: 4px; }
+    ::-webkit-scrollbar-track { background: #080A0F; }
+    ::-webkit-scrollbar-thumb { background: #FF4D1C; border-radius: 2px; }
+
+    /* ── Stat counters ── */
+    .stat-num { font-variant-numeric: tabular-nums; }
+  </style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════
+     WHATSAPP FAB
+══════════════════════════════════════ -->
+<a href="https://wa.me/919876543210"
+   target="_blank" rel="noopener noreferrer"
+   class="wa-fab" aria-label="Chat on WhatsApp">
+  <!-- WhatsApp SVG icon -->
+  <svg width="28" height="28" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M16 3.5C9.1 3.5 3.5 9.1 3.5 16c0 2.34.64 4.53 1.75 6.41L3.5 28.5l6.3-1.72A12.44 12.44 0 0 0 16 28.5c6.9 0 12.5-5.6 12.5-12.5S22.9 3.5 16 3.5z" fill="white"/>
+    <path d="M21.8 19.28c-.3-.15-1.77-.87-2.04-.97-.28-.1-.47-.15-.67.15-.2.3-.77.97-.95 1.17-.17.2-.35.22-.65.07-.3-.15-1.26-.46-2.4-1.47-.89-.79-1.49-1.76-1.66-2.06-.18-.3-.02-.46.13-.61.13-.13.3-.34.45-.51.15-.17.2-.3.3-.5.1-.2.05-.37-.02-.52-.07-.15-.67-1.6-.91-2.2-.24-.57-.48-.5-.67-.51l-.57-.01c-.2 0-.52.07-.79.37-.27.3-1.03 1.01-1.03 2.46s1.06 2.85 1.2 3.05c.15.2 2.07 3.17 5.02 4.44.7.3 1.25.48 1.68.62.7.22 1.34.19 1.84.11.56-.08 1.77-.72 2.02-1.42.25-.7.25-1.3.17-1.42-.07-.12-.27-.2-.57-.35z" fill="#25D366"/>
+  </svg>
+</a>
+
+<!-- ══════════════════════════════════════
+     NAVBAR
+══════════════════════════════════════ -->
+<nav id="navbar" class="fixed top-0 left-0 right-0 z-50 transition-all duration-500">
+  <div class="max-w-7xl mx-auto px-4 sm:px-8 lg:px-12">
+    <div class="flex items-center justify-between h-16 md:h-20">
+
+      <!-- Logo -->
+      <a href="#hero" class="flex items-center gap-2.5 group flex-shrink-0">
+        <div class="w-8 h-8 rounded-lg bg-ember flex items-center justify-center glow-ember group-hover:scale-110 transition-transform duration-200">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+            <path d="M3 13L8 3L13 13" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M5 10H11" stroke="white" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <span class="font-display font-bold text-lg tracking-tight text-snow">
+          Chennai<span class="text-ember">Flow</span>
+        </span>
+      </a>
+
+      <!-- Desktop links -->
+      <div class="hidden md:flex items-center gap-8">
+        <a href="#features"     class="nav-link font-body text-sm font-medium">Features</a>
+        <a href="#testimonials" class="nav-link font-body text-sm font-medium">Stories</a>
+        <a href="#stats"        class="nav-link font-body text-sm font-medium">Impact</a>
+        <a href="#contact"      class="nav-link font-body text-sm font-medium">Contact</a>
+      </div>
+
+      <!-- Desktop CTA -->
+      <div class="hidden md:flex items-center gap-3">
+        <a href="#contact" class="btn-outline text-snow text-sm font-medium px-4 py-2 rounded-lg font-body">Sign in</a>
+        <a href="#contact" class="btn-ember text-white text-sm font-semibold px-5 py-2 rounded-lg font-display">Get Early Access →</a>
+      </div>
+
+      <!-- Hamburger -->
+      <button id="menu-toggle" class="md:hidden text-mist hover:text-snow transition-colors p-2 -mr-2" aria-label="Toggle menu">
+        <svg id="icon-open" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/>
+        </svg>
+        <svg id="icon-close" class="hidden" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+        </svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- Mobile drawer -->
+  <div id="mobile-menu" class="closed md:hidden nav-glass border-t border-white/5">
+    <div class="max-w-7xl mx-auto px-4 py-4 flex flex-col gap-1">
+      <a href="#features"     class="text-mist hover:text-snow text-sm font-medium py-3 px-3 rounded-lg hover:bg-white/5 transition-colors">Features</a>
+      <a href="#testimonials" class="text-mist hover:text-snow text-sm font-medium py-3 px-3 rounded-lg hover:bg-white/5 transition-colors">Stories</a>
+      <a href="#stats"        class="text-mist hover:text-snow text-sm font-medium py-3 px-3 rounded-lg hover:bg-white/5 transition-colors">Impact</a>
+      <a href="#contact"      class="text-mist hover:text-snow text-sm font-medium py-3 px-3 rounded-lg hover:bg-white/5 transition-colors">Contact</a>
+      <div class="flex gap-2 mt-3 pt-3 border-t border-white/5">
+        <a href="#contact" class="btn-outline text-snow text-sm font-medium px-4 py-2.5 rounded-lg flex-1 text-center">Sign in</a>
+        <a href="#contact" class="btn-ember text-white text-sm font-semibold px-4 py-2.5 rounded-lg flex-1 text-center">Get Access</a>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<!-- ══════════════════════════════════════
+     HERO
+══════════════════════════════════════ -->
+<section id="hero" class="hero-bg relative min-h-screen flex flex-col justify-center pt-16 overflow-hidden">
+
+  <div class="absolute inset-0 grid-bg opacity-35"></div>
+
+  <!-- Orbs -->
+  <div class="absolute top-1/4 left-1/4 w-64 sm:w-80 md:w-96 h-64 sm:h-80 md:h-96 rounded-full orb pointer-events-none"
+       style="background:radial-gradient(circle,rgba(255,77,28,.13) 0%,transparent 70%);filter:blur(40px);"></div>
+  <div class="absolute bottom-1/3 right-10 md:right-1/5 w-56 sm:w-64 md:w-80 h-56 sm:h-64 md:h-80 rounded-full orb-2 pointer-events-none"
+       style="background:radial-gradient(circle,rgba(245,200,66,.08) 0%,transparent 70%);filter:blur(50px);"></div>
+
+  <div class="relative z-10 max-w-7xl mx-auto px-4 sm:px-8 lg:px-12 py-20 md:py-32">
+
+    <!-- Badge -->
+    <div id="hero-badge"
+         class="inline-flex items-center gap-2 mb-6 sm:mb-8 px-3 py-1.5 rounded-full border border-ember/25 bg-ember/8 text-ember-light text-xs font-medium font-body opacity-0">
+      <span class="w-1.5 h-1.5 rounded-full bg-ember animate-pulse flex-shrink-0"></span>
+      Now live in Chennai · Hyderabad · Bangalore
+    </div>
+
+    <!-- Headline — sharpened for Indian startup audience -->
+    <h1 id="hero-h1"
+        class="font-display font-extrabold leading-[0.92] tracking-tight text-snow max-w-5xl mb-5 opacity-0"
+        style="font-size: clamp(2.25rem, 7vw, 5.5rem);">
+      Ship AI 10× faster.<br/>
+      <span class="text-ember relative inline-block">
+        Stop paying the AWS tax.
+        <svg class="absolute -bottom-1 left-0 w-full" viewBox="0 0 520 10" fill="none" preserveAspectRatio="none">
+          <path d="M0 7 Q130 0 260 5 Q390 10 520 3"
+                stroke="#FF4D1C" stroke-width="2.5" stroke-linecap="round" opacity="0.55"/>
+        </svg>
+      </span>
+      <br/><span class="text-snow/55">Built in Chennai, for the world.</span>
+    </h1>
+
+    <!-- Sub-headline -->
+    <p id="hero-sub"
+       class="font-body text-mist text-base sm:text-lg md:text-xl max-w-xl sm:max-w-2xl mb-8 sm:mb-10 leading-relaxed opacity-0">
+      ChennaiFlow gives Indian startups enterprise-grade AI infra at a fraction of the cost — real-time inference,
+      auto-scaling pipelines, and a fine-tuning studio that actually makes sense in ₹.
+    </p>
+
+    <!-- CTAs -->
+    <div id="hero-cta" class="flex flex-col sm:flex-row flex-wrap gap-3 mb-12 sm:mb-16 opacity-0">
+      <a href="#contact"
+         class="btn-ember font-display font-bold text-white px-7 py-3.5 rounded-xl text-sm sm:text-base inline-flex items-center justify-center gap-2">
+        Start for free
+        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+          <path d="M5 12h14M12 5l7 7-7 7"/>
+        </svg>
+      </a>
+      <a href="#features"
+         class="btn-outline font-body text-snow px-6 py-3.5 rounded-xl text-sm sm:text-base inline-flex items-center justify-center gap-2">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="10"/><polygon points="10,8 16,12 10,16"/>
+        </svg>
+        See how it works
+      </a>
+    </div>
+
+    <!-- Social proof -->
+    <div id="hero-proof" class="flex flex-wrap items-center gap-4 sm:gap-6 opacity-0">
+      <div class="flex -space-x-2.5">
+        <div class="w-8 h-8 rounded-full bg-gradient-to-br from-orange-400 to-red-600   border-2 border-night flex items-center justify-center text-xs font-bold text-white">R</div>
+        <div class="w-8 h-8 rounded-full bg-gradient-to-br from-blue-400   to-violet-600  border-2 border-night flex items-center justify-center text-xs font-bold text-white">P</div>
+        <div class="w-8 h-8 rounded-full bg-gradient-to-br from-green-400  to-teal-600   border-2 border-night flex items-center justify-center text-xs font-bold text-white">A</div>
+        <div class="w-8 h-8 rounded-full bg-gradient-to-br from-yellow-400 to-amber-600  border-2 border-night flex items-center justify-center text-xs font-bold text-white">S</div>
+        <div class="w-8 h-8 rounded-full bg-surface border-2 border-border flex items-center justify-center text-xs text-mist font-medium">+</div>
+      </div>
+      <div class="text-mist text-sm font-body">
+        <span class="text-snow font-medium">240+ teams</span> already building on ChennaiFlow
+      </div>
+      <div class="flex items-center gap-1 text-gold text-sm">
+        ★★★★★ <span class="text-mist ml-1 font-body text-xs">4.9 / 5</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scroll cue -->
+  <div class="absolute bottom-6 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 text-mist/40 pointer-events-none">
+    <span class="text-xs font-body tracking-widest uppercase">Scroll</span>
+    <div class="w-px h-7 bg-gradient-to-b from-mist/30 to-transparent animate-pulse"></div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════
+     MARQUEE
+══════════════════════════════════════ -->
+<div class="py-8 sm:py-10 border-y border-border overflow-hidden bg-surface/30">
+  <div class="marquee-track">
+    <template id="marquee-items">
+      <span class="text-mist/40 text-xs sm:text-sm font-body tracking-widest uppercase whitespace-nowrap">Real-time Inference</span>
+      <span class="text-ember/50 text-xl font-display">✦</span>
+      <span class="text-mist/40 text-xs sm:text-sm font-body tracking-widest uppercase whitespace-nowrap">Model Orchestration</span>
+      <span class="text-ember/50 text-xl font-display">✦</span>
+      <span class="text-mist/40 text-xs sm:text-sm font-body tracking-widest uppercase whitespace-nowrap">Auto-scaling Pipelines</span>
+      <span class="text-ember/50 text-xl font-display">✦</span>
+      <span class="text-mist/40 text-xs sm:text-sm font-body tracking-widest uppercase whitespace-nowrap">Vector Storage</span>
+      <span class="text-ember/50 text-xl font-display">✦</span>
+      <span class="text-mist/40 text-xs sm:text-sm font-body tracking-widest uppercase whitespace-nowrap">LLM Router</span>
+      <span class="text-ember/50 text-xl font-display">✦</span>
+      <span class="text-mist/40 text-xs sm:text-sm font-body tracking-widest uppercase whitespace-nowrap">Edge Deployment</span>
+      <span class="text-ember/50 text-xl font-display">✦</span>
+      <span class="text-mist/40 text-xs sm:text-sm font-body tracking-widest uppercase whitespace-nowrap">Observability Suite</span>
+      <span class="text-ember/50 text-xl font-display">✦</span>
+      <span class="text-mist/40 text-xs sm:text-sm font-body tracking-widest uppercase whitespace-nowrap">Fine-tuning Engine</span>
+      <span class="text-ember/50 text-xl font-display">✦</span>
+    </template>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     FEATURES
+══════════════════════════════════════ -->
+<section id="features" class="py-20 sm:py-28 md:py-36 relative overflow-hidden">
+  <div class="absolute inset-0 grid-bg opacity-20"></div>
+  <div class="relative z-10 max-w-7xl mx-auto px-4 sm:px-8 lg:px-12">
+
+    <div class="mb-14 sm:mb-20 reveal">
+      <div class="inline-flex items-center gap-2 mb-4 px-3 py-1 rounded-full border border-white/10 bg-white/3 text-mist text-xs font-body tracking-widest uppercase">
+        Platform Features
+      </div>
+      <h2 class="font-display font-extrabold text-snow leading-tight tracking-tight max-w-3xl"
+          style="font-size:clamp(1.75rem,4.5vw,3.75rem);">
+        Everything your AI stack needs,<br/>
+        <span class="text-mist/55">nothing it doesn't.</span>
+      </h2>
+    </div>
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-5">
+
+      <!-- 1 -->
+      <div class="sm:col-span-2 lg:col-span-1 bg-surface border border-border rounded-2xl p-6 sm:p-7 card-hover reveal">
+        <div class="icon-wrap w-11 h-11 rounded-xl flex items-center justify-center mb-5">
+          <svg width="20" height="20" fill="none" stroke="#FF4D1C" stroke-width="1.8" viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+        </div>
+        <h3 class="font-display font-bold text-snow text-xl mb-2 tracking-tight">Lightning Inference</h3>
+        <p class="text-mist text-sm leading-relaxed font-body">Sub-50ms response times powered by our proprietary tensor routing engine, built from the ground up in Chennai.</p>
+        <div class="mt-6 flex items-center gap-2 text-ember text-xs font-medium font-body">
+          <span class="w-1.5 h-1.5 rounded-full bg-ember animate-pulse flex-shrink-0"></span>
+          Live · avg 34ms
+        </div>
+      </div>
+
+      <!-- 2 -->
+      <div class="bg-surface border border-border rounded-2xl p-6 sm:p-7 card-hover reveal">
+        <div class="icon-wrap w-11 h-11 rounded-xl flex items-center justify-center mb-5">
+          <svg width="20" height="20" fill="none" stroke="#FF4D1C" stroke-width="1.8" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+        </div>
+        <h3 class="font-display font-bold text-snow text-xl mb-2 tracking-tight">Smart LLM Router</h3>
+        <p class="text-mist text-sm leading-relaxed font-body">Route queries to the best model automatically — balancing cost, speed, and quality in real time.</p>
+      </div>
+
+      <!-- 3 -->
+      <div class="bg-surface border border-border rounded-2xl p-6 sm:p-7 card-hover reveal">
+        <div class="icon-wrap w-11 h-11 rounded-xl flex items-center justify-center mb-5">
+          <svg width="20" height="20" fill="none" stroke="#FF4D1C" stroke-width="1.8" viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
+        </div>
+        <h3 class="font-display font-bold text-snow text-xl mb-2 tracking-tight">Vector Store</h3>
+        <p class="text-mist text-sm leading-relaxed font-body">Billion-scale vector search with hybrid dense-sparse retrieval, fully managed and zero-config.</p>
+      </div>
+
+      <!-- 4 wide -->
+      <div class="lg:col-span-2 border border-border rounded-2xl p-6 sm:p-7 card-hover reveal"
+           style="background:linear-gradient(135deg,#111318 0%,rgba(255,77,28,.04) 100%);">
+        <div class="flex flex-col sm:flex-row sm:items-start gap-6">
+          <div class="flex-1">
+            <div class="icon-wrap w-11 h-11 rounded-xl flex items-center justify-center mb-5">
+              <svg width="20" height="20" fill="none" stroke="#FF4D1C" stroke-width="1.8" viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+            </div>
+            <h3 class="font-display font-bold text-snow text-xl mb-2 tracking-tight">Real-time Observability</h3>
+            <p class="text-mist text-sm leading-relaxed font-body">Full-stack tracing from prompt to token. Debug hallucinations, latency spikes, and cost anomalies before your users see them.</p>
+          </div>
+          <!-- Mini bar chart -->
+          <div class="flex-shrink-0 w-full sm:w-48 h-16 sm:h-20 flex items-end gap-1 px-1">
+            <div class="flex-1 bg-ember/20 rounded-t" style="height:30%"></div>
+            <div class="flex-1 bg-ember/30 rounded-t" style="height:55%"></div>
+            <div class="flex-1 bg-ember/25 rounded-t" style="height:40%"></div>
+            <div class="flex-1 bg-ember/35 rounded-t" style="height:70%"></div>
+            <div class="flex-1 bg-ember/50 rounded-t" style="height:60%"></div>
+            <div class="flex-1 bg-ember    rounded-t" style="height:90%"></div>
+            <div class="flex-1 bg-ember/60 rounded-t" style="height:75%"></div>
+            <div class="flex-1 bg-ember/40 rounded-t" style="height:50%"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 5 -->
+      <div class="bg-surface border border-border rounded-2xl p-6 sm:p-7 card-hover reveal">
+        <div class="icon-wrap w-11 h-11 rounded-xl flex items-center justify-center mb-5">
+          <svg width="20" height="20" fill="none" stroke="#FF4D1C" stroke-width="1.8" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        </div>
+        <h3 class="font-display font-bold text-snow text-xl mb-2 tracking-tight">SOC 2 Ready</h3>
+        <p class="text-mist text-sm leading-relaxed font-body">Enterprise-grade security with end-to-end encryption, audit logs, and data residency in India.</p>
+      </div>
+
+      <!-- 6 -->
+      <div class="bg-surface border border-border rounded-2xl p-6 sm:p-7 card-hover reveal">
+        <div class="icon-wrap w-11 h-11 rounded-xl flex items-center justify-center mb-5">
+          <svg width="20" height="20" fill="none" stroke="#FF4D1C" stroke-width="1.8" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07M8.46 8.46a5 5 0 0 0 0 7.07"/></svg>
+        </div>
+        <h3 class="font-display font-bold text-snow text-xl mb-2 tracking-tight">Edge Deployment</h3>
+        <p class="text-mist text-sm leading-relaxed font-body">Push models to 12 edge nodes across South Asia. Your Chennai users shouldn't wait for Virginia.</p>
+      </div>
+
+      <!-- 7 -->
+      <div class="bg-surface border border-border rounded-2xl p-6 sm:p-7 card-hover reveal">
+        <div class="icon-wrap w-11 h-11 rounded-xl flex items-center justify-center mb-5">
+          <svg width="20" height="20" fill="none" stroke="#FF4D1C" stroke-width="1.8" viewBox="0 0 24 24"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
+        </div>
+        <h3 class="font-display font-bold text-snow text-xl mb-2 tracking-tight">Fine-tuning Studio</h3>
+        <p class="text-mist text-sm leading-relaxed font-body">Upload your data, pick a base model, get a fine-tuned endpoint in under 90 minutes. No ML PhD required.</p>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════
+     STATS
+══════════════════════════════════════ -->
+<section id="stats" class="py-16 sm:py-20 border-y border-border bg-surface/40 overflow-hidden">
+  <div class="max-w-7xl mx-auto px-4 sm:px-8 lg:px-12">
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-8 md:gap-12">
+
+      <div class="reveal text-center lg:text-left">
+        <div class="stat-num font-display font-extrabold text-snow mb-1" style="font-size:clamp(1.9rem,5vw,3.25rem);">
+          <span data-target="34">0</span><span class="text-ember">ms</span>
+        </div>
+        <div class="text-mist text-sm font-body">Avg inference latency</div>
+      </div>
+
+      <div class="reveal text-center lg:text-left">
+        <div class="stat-num font-display font-extrabold text-snow mb-1" style="font-size:clamp(1.9rem,5vw,3.25rem);">
+          <span data-target="240">0</span><span class="text-ember">+</span>
+        </div>
+        <div class="text-mist text-sm font-body">Teams building today</div>
+      </div>
+
+      <div class="reveal text-center lg:text-left">
+        <div class="stat-num font-display font-extrabold text-snow mb-1" style="font-size:clamp(1.9rem,5vw,3.25rem);">
+          <span data-target="99">0</span><span class="text-ember">.</span>9<span class="text-ember">%</span>
+        </div>
+        <div class="text-mist text-sm font-body">Uptime SLA</div>
+      </div>
+
+      <div class="reveal text-center lg:text-left">
+        <div class="stat-num font-display font-extrabold text-snow mb-1" style="font-size:clamp(1.9rem,5vw,3.25rem);">
+          <span data-target="2">0</span><span class="text-ember">B+</span>
+        </div>
+        <div class="text-mist text-sm font-body">Tokens processed</div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════
+     TESTIMONIALS
+══════════════════════════════════════ -->
+<section id="testimonials" class="py-20 sm:py-28 md:py-36 relative overflow-hidden">
+  <div class="absolute top-0 right-0 w-72 sm:w-96 h-72 sm:h-96 rounded-full pointer-events-none"
+       style="background:radial-gradient(circle,rgba(255,77,28,.05) 0%,transparent 70%);filter:blur(60px);transform:translate(30%,-30%);"></div>
+
+  <div class="max-w-7xl mx-auto px-4 sm:px-8 lg:px-12">
+
+    <div class="mb-12 sm:mb-16 reveal">
+      <div class="inline-flex items-center gap-2 mb-4 px-3 py-1 rounded-full border border-white/10 bg-white/3 text-mist text-xs font-body tracking-widest uppercase">
+        Customer Stories
+      </div>
+      <h2 class="font-display font-extrabold text-snow leading-tight tracking-tight"
+          style="font-size:clamp(1.75rem,4vw,3rem);">
+        Builders from Chennai<br/>
+        <span class="text-mist/55">to the world.</span>
+      </h2>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
+
+      <div class="testimonial-card rounded-2xl p-6 sm:p-7 reveal">
+        <div class="flex gap-0.5 text-gold text-sm mb-5">★★★★★</div>
+        <p class="text-snow/80 text-sm leading-relaxed font-body mb-6 italic">"We moved our entire RAG pipeline to ChennaiFlow in a weekend. Inference costs dropped 60% and latency went from 800ms to under 40ms. The TN edge node alone paid for itself in week one."</p>
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-full bg-gradient-to-br from-violet-500 to-blue-600 flex items-center justify-center font-display font-bold text-white text-xs flex-shrink-0">RK</div>
+          <div>
+            <div class="font-display font-semibold text-snow text-sm">Rajesh Kumar</div>
+            <div class="text-mist text-xs font-body">CTO · Zoho Labs spinoff</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="testimonial-card rounded-2xl p-6 sm:p-7 reveal">
+        <div class="flex gap-0.5 text-gold text-sm mb-5">★★★★★</div>
+        <p class="text-snow/80 text-sm leading-relaxed font-body mb-6 italic">"Finally an AI infra company that understands the Indian developer. Support responds in under an hour and the docs are actually written for humans. Feels like our team extended."</p>
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-full bg-gradient-to-br from-rose-500 to-orange-500 flex items-center justify-center font-display font-bold text-white text-xs flex-shrink-0">PS</div>
+          <div>
+            <div class="font-display font-semibold text-snow text-sm">Priya Subramaniam</div>
+            <div class="text-mist text-xs font-body">Founder · Kural AI</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="testimonial-card rounded-2xl p-6 sm:p-7 reveal">
+        <div class="flex gap-0.5 text-gold text-sm mb-5">★★★★★</div>
+        <p class="text-snow/80 text-sm leading-relaxed font-body mb-6 italic">"The LLM router saved us from vendor lock-in. We swap models dynamically and ChennaiFlow handles all the plumbing. We're shipping 3× faster since we switched."</p>
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-full bg-gradient-to-br from-green-500 to-teal-600 flex items-center justify-center font-display font-bold text-white text-xs flex-shrink-0">AM</div>
+          <div>
+            <div class="font-display font-semibold text-snow text-sm">Arjun Mani</div>
+            <div class="text-mist text-xs font-body">Lead Eng · Freshworks</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="testimonial-card rounded-2xl p-6 sm:p-7 reveal">
+        <div class="flex gap-0.5 text-gold text-sm mb-5">★★★★★</div>
+        <p class="text-snow/80 text-sm leading-relaxed font-body mb-6 italic">"ChennaiFlow handled the Pongal traffic spike — 12× normal load — without a single alert. We serve 50,000 daily users across TN and Karnataka."</p>
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-full bg-gradient-to-br from-amber-400 to-orange-600 flex items-center justify-center font-display font-bold text-white text-xs flex-shrink-0">SR</div>
+          <div>
+            <div class="font-display font-semibold text-snow text-sm">Saranya Ravi</div>
+            <div class="text-mist text-xs font-body">VP Eng · NuLearn</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="testimonial-card rounded-2xl p-6 sm:p-7 reveal">
+        <div class="flex gap-0.5 text-gold text-sm mb-5">★★★★★</div>
+        <p class="text-snow/80 text-sm leading-relaxed font-body mb-6 italic">"Built a custom Tamil-language fine-tune in 4 hours. The studio is clean, feedback is instant, and the resulting model outperformed GPT-4 on our benchmark."</p>
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-full bg-gradient-to-br from-cyan-400 to-blue-600 flex items-center justify-center font-display font-bold text-white text-xs flex-shrink-0">KN</div>
+          <div>
+            <div class="font-display font-semibold text-snow text-sm">Karthik Narayanan</div>
+            <div class="text-mist text-xs font-body">ML Lead · Sarvam AI</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="testimonial-card rounded-2xl p-6 sm:p-7 reveal">
+        <div class="flex gap-0.5 text-gold text-sm mb-5">★★★★★</div>
+        <p class="text-snow/80 text-sm leading-relaxed font-body mb-6 italic">"Migrated from AWS Bedrock in 3 days. The observability dashboard alone is worth it — finally know why a query costs ₹0.04 vs ₹0.40. Game-changing unit economics."</p>
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-full bg-gradient-to-br from-pink-500 to-rose-600 flex items-center justify-center font-display font-bold text-white text-xs flex-shrink-0">DP</div>
+          <div>
+            <div class="font-display font-semibold text-snow text-sm">Divya Patel</div>
+            <div class="text-mist text-xs font-body">Co-founder · Vyapar AI</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════
+     CONTACT / CTA + FORM
+══════════════════════════════════════ -->
+<section id="contact" class="py-20 sm:py-28 md:py-36 relative overflow-hidden">
+  <div class="absolute inset-0"
+       style="background:radial-gradient(ellipse 70% 60% at 50% 50%,rgba(255,77,28,.07) 0%,transparent 70%);"></div>
+  <div class="absolute inset-0 grid-bg opacity-15"></div>
+
+  <div class="relative z-10 max-w-6xl mx-auto px-4 sm:px-8">
+
+    <!-- Section header -->
+    <div class="text-center mb-14 sm:mb-20 reveal">
+      <div class="inline-flex items-center gap-2 mb-6 px-3 py-1 rounded-full border border-ember/25 bg-ember/6 text-ember text-xs font-body tracking-widest uppercase">
+        Early Access Open
+      </div>
+      <h2 class="font-display font-extrabold text-snow mb-5 leading-tight tracking-tight"
+          style="font-size:clamp(1.8rem,4.5vw,3.5rem);">
+        Chennai built the railways.<br/>
+        <span class="text-ember">Now we're building AI infrastructure.</span>
+      </h2>
+      <p class="text-mist text-base md:text-lg font-body max-w-xl mx-auto leading-relaxed">
+        Join 240+ teams who've already switched. No credit card. No vendor lock-in.
+      </p>
+    </div>
+
+    <!-- Two-column: form + trust -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-16 items-start">
+
+      <!-- ── CONTACT FORM ── -->
+      <div class="reveal">
+
+        <!-- Form card -->
+        <div id="contact-form-wrap"
+             class="bg-surface border border-border rounded-2xl p-6 sm:p-8">
+          <h3 class="font-display font-bold text-snow text-xl mb-1">Send us a message</h3>
+          <p class="text-mist text-sm font-body mb-6">We respond within a few hours, promise.</p>
+
+          <form id="contact-form" novalidate class="flex flex-col gap-4">
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div class="flex flex-col gap-1.5">
+                <label for="cf-name"
+                       class="text-mist text-xs font-body font-medium uppercase tracking-wider">Name *</label>
+                <input id="cf-name" type="text" placeholder="Rajesh Kumar"
+                       class="form-input" required autocomplete="name" />
+              </div>
+              <div class="flex flex-col gap-1.5">
+                <label for="cf-email"
+                       class="text-mist text-xs font-body font-medium uppercase tracking-wider">Email *</label>
+                <input id="cf-email" type="email" placeholder="you@startup.com"
+                       class="form-input" required autocomplete="email" />
+              </div>
+            </div>
+
+            <div class="flex flex-col gap-1.5">
+              <label for="cf-company"
+                     class="text-mist text-xs font-body font-medium uppercase tracking-wider">
+                Company <span class="normal-case text-mist/50">(optional)</span>
+              </label>
+              <input id="cf-company" type="text" placeholder="Acme AI Pvt. Ltd."
+                     class="form-input" autocomplete="organization" />
+            </div>
+
+            <div class="flex flex-col gap-1.5">
+              <label for="cf-message"
+                     class="text-mist text-xs font-body font-medium uppercase tracking-wider">Message *</label>
+              <textarea id="cf-message" placeholder="Tell us what you're building…"
+                        class="form-input form-textarea" required></textarea>
+            </div>
+
+            <!-- Error -->
+            <p id="form-error" class="text-ember text-xs font-body hidden" role="alert"></p>
+
+            <button type="submit"
+                    class="btn-ember text-white font-display font-bold px-6 py-3.5 rounded-xl text-sm inline-flex items-center justify-center gap-2 w-full sm:w-auto self-start">
+              Send Message
+              <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                <path d="M5 12h14M12 5l7 7-7 7"/>
+              </svg>
+            </button>
+          </form>
+        </div>
+
+        <!-- Success card (shown after submit) -->
+        <div id="form-success"
+             class="bg-surface border border-border rounded-2xl p-6 sm:p-8 text-center">
+          <div class="w-14 h-14 rounded-full bg-wa/10 border border-wa/25 flex items-center justify-center mx-auto mb-5">
+            <svg width="28" height="28" fill="none" stroke="#25D366" stroke-width="2.5" viewBox="0 0 24 24">
+              <polyline points="20 6 9 17 4 12"/>
+            </svg>
+          </div>
+          <h3 class="font-display font-bold text-snow text-xl mb-2">Message sent! 🎉</h3>
+          <p class="text-mist text-sm font-body leading-relaxed">
+            Thanks for reaching out. Our Chennai team will get back to you within a few hours.<br/>
+            <span class="text-snow/60">Need a faster reply? Ping us on WhatsApp.</span>
+          </p>
+          <a href="https://wa.me/919876543210" target="_blank" rel="noopener"
+             class="mt-5 inline-flex items-center justify-center gap-2 text-wa text-sm font-medium font-body hover:underline">
+            <svg width="18" height="18" viewBox="0 0 32 32" fill="none">
+              <path d="M16 3.5C9.1 3.5 3.5 9.1 3.5 16c0 2.34.64 4.53 1.75 6.41L3.5 28.5l6.3-1.72A12.44 12.44 0 0 0 16 28.5c6.9 0 12.5-5.6 12.5-12.5S22.9 3.5 16 3.5z" fill="#25D366"/>
+              <path d="M21.8 19.28c-.3-.15-1.77-.87-2.04-.97-.28-.1-.47-.15-.67.15-.2.3-.77.97-.95 1.17-.17.2-.35.22-.65.07-.3-.15-1.26-.46-2.4-1.47-.89-.79-1.49-1.76-1.66-2.06-.18-.3-.02-.46.13-.61.13-.13.3-.34.45-.51.15-.17.2-.3.3-.5.1-.2.05-.37-.02-.52-.07-.15-.67-1.6-.91-2.2-.24-.57-.48-.5-.67-.51l-.57-.01c-.2 0-.52.07-.79.37-.27.3-1.03 1.01-1.03 2.46s1.06 2.85 1.2 3.05c.15.2 2.07 3.17 5.02 4.44.7.3 1.25.48 1.68.62.7.22 1.34.19 1.84.11.56-.08 1.77-.72 2.02-1.42.25-.7.25-1.3.17-1.42-.07-.12-.27-.2-.57-.35z" fill="white"/>
+            </svg>
+            Open WhatsApp
+          </a>
+        </div>
+      </div>
+
+      <!-- ── TRUST COLUMN ── -->
+      <div class="reveal flex flex-col gap-5">
+
+        <div class="flex items-start gap-4 p-5 rounded-2xl border border-border bg-surface/50">
+          <div class="w-10 h-10 rounded-xl bg-ember/10 border border-ember/20 flex items-center justify-center flex-shrink-0">
+            <svg width="18" height="18" fill="none" stroke="#FF4D1C" stroke-width="1.8" viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+          </div>
+          <div>
+            <div class="font-display font-semibold text-snow text-sm mb-0.5">Live in minutes</div>
+            <div class="text-mist text-xs font-body leading-relaxed">Install our CLI, connect your model, deploy — zero to production in under 5 minutes.</div>
+          </div>
+        </div>
+
+        <div class="flex items-start gap-4 p-5 rounded-2xl border border-border bg-surface/50">
+          <div class="w-10 h-10 rounded-xl bg-ember/10 border border-ember/20 flex items-center justify-center flex-shrink-0">
+            <svg width="18" height="18" fill="none" stroke="#FF4D1C" stroke-width="1.8" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          </div>
+          <div>
+            <div class="font-display font-semibold text-snow text-sm mb-0.5">Data stays in India</div>
+            <div class="text-mist text-xs font-body leading-relaxed">All data processed and stored within Indian data centers. RBI and MeitY compliant.</div>
+          </div>
+        </div>
+
+        <div class="flex items-start gap-4 p-5 rounded-2xl border border-border bg-surface/50">
+          <div class="w-10 h-10 rounded-xl bg-ember/10 border border-ember/20 flex items-center justify-center flex-shrink-0">
+            <svg width="18" height="18" fill="none" stroke="#FF4D1C" stroke-width="1.8" viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+          </div>
+          <div>
+            <div class="font-display font-semibold text-snow text-sm mb-0.5">Free tier, forever</div>
+            <div class="text-mist text-xs font-body leading-relaxed">1M tokens/month on us. No credit card. Upgrade only when you're ready to scale.</div>
+          </div>
+        </div>
+
+        <!-- Logos -->
+        <div class="pt-4 border-t border-border/40">
+          <p class="text-mist/40 text-xs font-body tracking-widest uppercase mb-5">Trusted by engineers at</p>
+          <div class="flex flex-wrap gap-x-7 gap-y-4 items-center">
+            <span class="font-display font-bold text-mist/28 text-base">Zoho</span>
+            <span class="font-display font-bold text-mist/28 text-base">Freshworks</span>
+            <span class="font-display font-bold text-mist/28 text-base">PayU</span>
+            <span class="font-display font-bold text-mist/28 text-base">BYJU'S</span>
+            <span class="font-display font-bold text-mist/28 text-base">Razorpay</span>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════
+     FOOTER
+══════════════════════════════════════ -->
+<footer class="border-t border-border py-10 sm:py-12 bg-void">
+  <div class="max-w-7xl mx-auto px-4 sm:px-8 lg:px-12">
+
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-8 mb-10">
+
+      <div class="col-span-2 md:col-span-1">
+        <a href="#hero" class="flex items-center gap-2.5 mb-4">
+          <div class="w-7 h-7 rounded-lg bg-ember flex items-center justify-center">
+            <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
+              <path d="M3 13L8 3L13 13" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M5 10H11" stroke="white" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+          </div>
+          <span class="font-display font-bold text-snow">Chennai<span class="text-ember">Flow</span></span>
+        </a>
+        <p class="text-mist text-xs font-body leading-relaxed max-w-xs">
+          AI infrastructure for the next generation of South Asian builders.
+        </p>
+      </div>
+
+      <div>
+        <div class="font-display font-semibold text-snow text-sm mb-4">Product</div>
+        <ul class="space-y-2.5">
+          <li><a href="#features" class="text-mist text-xs font-body hover:text-snow transition-colors">Features</a></li>
+          <li><a href="#contact"  class="text-mist text-xs font-body hover:text-snow transition-colors">Pricing</a></li>
+          <li><a href="#"         class="text-mist text-xs font-body hover:text-snow transition-colors">Changelog</a></li>
+          <li><a href="#"         class="text-mist text-xs font-body hover:text-snow transition-colors">Roadmap</a></li>
+        </ul>
+      </div>
+
+      <div>
+        <div class="font-display font-semibold text-snow text-sm mb-4">Developers</div>
+        <ul class="space-y-2.5">
+          <li><a href="#" class="text-mist text-xs font-body hover:text-snow transition-colors">Docs</a></li>
+          <li><a href="#" class="text-mist text-xs font-body hover:text-snow transition-colors">API Reference</a></li>
+          <li><a href="#" class="text-mist text-xs font-body hover:text-snow transition-colors">SDK</a></li>
+          <li><a href="#" class="text-mist text-xs font-body hover:text-snow transition-colors">Status</a></li>
+        </ul>
+      </div>
+
+      <div>
+        <div class="font-display font-semibold text-snow text-sm mb-4">Company</div>
+        <ul class="space-y-2.5">
+          <li><a href="#"        class="text-mist text-xs font-body hover:text-snow transition-colors">About</a></li>
+          <li><a href="#"        class="text-mist text-xs font-body hover:text-snow transition-colors">Blog</a></li>
+          <li><a href="#"        class="text-mist text-xs font-body hover:text-snow transition-colors">Careers</a></li>
+          <li><a href="#contact" class="text-mist text-xs font-body hover:text-snow transition-colors">Contact</a></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="flex flex-col sm:flex-row items-center justify-between gap-4 pt-8 border-t border-border/50">
+      <p class="text-mist/40 text-xs font-body text-center sm:text-left">
+        © 2026 ChennaiFlow Technologies Pvt. Ltd. · Chennai, India
+      </p>
+      <div class="flex items-center gap-5">
+        <a href="#" class="text-mist/40 text-xs font-body hover:text-mist transition-colors">Privacy</a>
+        <a href="#" class="text-mist/40 text-xs font-body hover:text-mist transition-colors">Terms</a>
+        <a href="#" class="text-mist/40 text-xs font-body hover:text-mist transition-colors">Security</a>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<!-- ══════════════════════════════════════
+     JAVASCRIPT
+══════════════════════════════════════ -->
+<script>
+// ── Marquee ──────────────────────────────────────────────────────────
+const track = document.querySelector('.marquee-track');
+const tmpl  = document.getElementById('marquee-items');
+track.appendChild(tmpl.content.cloneNode(true));
+track.appendChild(tmpl.content.cloneNode(true));
+
+// ── Navbar glass on scroll ────────────────────────────────────────────
+const navbar = document.getElementById('navbar');
+const updateNav = () => navbar.classList.toggle('nav-glass', window.scrollY > 40);
+updateNav();
+window.addEventListener('scroll', updateNav, { passive: true });
+
+// ── Mobile menu ───────────────────────────────────────────────────────
+const toggle     = document.getElementById('menu-toggle');
+const mobileMenu = document.getElementById('mobile-menu');
+const iconOpen   = document.getElementById('icon-open');
+const iconClose  = document.getElementById('icon-close');
+let menuOpen = false;
+
+function closeMenu() {
+  menuOpen = false;
+  mobileMenu.classList.replace('open','closed');
+  iconOpen.classList.remove('hidden');
+  iconClose.classList.add('hidden');
+}
+toggle.addEventListener('click', () => {
+  menuOpen = !menuOpen;
+  if (menuOpen) {
+    mobileMenu.classList.replace('closed','open');
+    iconOpen.classList.add('hidden');
+    iconClose.classList.remove('hidden');
+  } else {
+    closeMenu();
+  }
+});
+mobileMenu.querySelectorAll('a').forEach(a => a.addEventListener('click', closeMenu));
+
+// ── Smooth scroll (offset for fixed navbar) ───────────────────────────
+document.querySelectorAll('a[href^="#"]').forEach(a => {
+  a.addEventListener('click', e => {
+    const href = a.getAttribute('href');
+    if (!href || href === '#') return;
+    const target = document.querySelector(href);
+    if (target) {
+      e.preventDefault();
+      const top = target.getBoundingClientRect().top + window.scrollY - 80;
+      window.scrollTo({ top, behavior: 'smooth' });
+    }
+  });
+});
+
+// ── GSAP animations ──────────────────────────────────────────────────
+gsap.registerPlugin(ScrollTrigger);
+
+gsap.timeline({ defaults: { ease: 'power3.out' } })
+  .to('#hero-badge', { opacity:1, y:0, duration:0.7, delay:0.2 })
+  .to('#hero-h1',    { opacity:1, y:0, duration:0.9 }, '-=0.45')
+  .to('#hero-sub',   { opacity:1, y:0, duration:0.8 }, '-=0.6')
+  .to('#hero-cta',   { opacity:1, y:0, duration:0.7 }, '-=0.55')
+  .to('#hero-proof', { opacity:1, y:0, duration:0.6 }, '-=0.45');
+
+gsap.utils.toArray('.reveal').forEach((el, i) => {
+  gsap.fromTo(el,
+    { opacity:0, y:36 },
+    {
+      opacity:1, y:0, duration:0.8, ease:'power3.out',
+      delay: (i % 3) * 0.07,
+      scrollTrigger: { trigger:el, start:'top 90%', toggleActions:'play none none none' }
+    }
+  );
+});
+
+// ── Counter animation ────────────────────────────────────────────────
+function animateCounter(el, target) {
+  const dur = 1800, start = performance.now();
+  const easeOut = t => 1 - Math.pow(1 - t, 3);
+  const tick = now => {
+    const p = Math.min((now - start) / dur, 1);
+    el.textContent = Math.round(easeOut(p) * target);
+    p < 1 ? requestAnimationFrame(tick) : (el.textContent = target);
+  };
+  requestAnimationFrame(tick);
+}
+
+let countersStarted = false;
+new IntersectionObserver(entries => {
+  if (entries[0].isIntersecting && !countersStarted) {
+    countersStarted = true;
+    document.querySelectorAll('[data-target]').forEach(el => {
+      animateCounter(el, parseInt(el.dataset.target, 10));
+    });
+  }
+}, { threshold: 0.3 }).observe(document.getElementById('stats'));
+
+// ── Parallax orbs ────────────────────────────────────────────────────
+window.addEventListener('mousemove', e => {
+  const x = (e.clientX / window.innerWidth  - 0.5) * 18;
+  const y = (e.clientY / window.innerHeight - 0.5) * 18;
+  document.querySelectorAll('.orb').forEach(o => {
+    o.style.transform = `translate(${x*0.55}px,${y*0.55}px)`;
+  });
+  document.querySelectorAll('.orb-2').forEach(o => {
+    o.style.transform = `translate(${x*-0.38}px,${y*-0.38}px)`;
+  });
+}, { passive: true });
+
+// ── Contact form ─────────────────────────────────────────────────────
+const contactForm  = document.getElementById('contact-form');
+const formWrap     = document.getElementById('contact-form-wrap');
+const formSuccess  = document.getElementById('form-success');
+const formError    = document.getElementById('form-error');
+
+contactForm.addEventListener('submit', e => {
+  e.preventDefault();
+  formError.classList.add('hidden');
+
+  const name    = document.getElementById('cf-name').value.trim();
+  const email   = document.getElementById('cf-email').value.trim();
+  const message = document.getElementById('cf-message').value.trim();
+  const emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+
+  // Validate
+  if (!name || !email || !message) {
+    formError.textContent = 'Please fill in all required fields.';
+    formError.classList.remove('hidden');
+    return;
+  }
+  if (!emailOk) {
+    formError.textContent = 'Please enter a valid email address.';
+    formError.classList.remove('hidden');
+    return;
+  }
+
+  // Simulate async submission
+  const btn = contactForm.querySelector('button[type="submit"]');
+  const originalHTML = btn.innerHTML;
+  btn.innerHTML = '<svg class="animate-spin" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg> Sending…';
+  btn.disabled = true;
+
+  setTimeout(() => {
+    formWrap.style.display = 'none';
+    formSuccess.classList.add('show');
+    // Scroll to success box smoothly
+    formSuccess.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }, 900);
+});
+</script>
+</body>
+</html>
